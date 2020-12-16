@@ -1,2 +1,1 @@
-# 2020-12_ML_in_Finance
-# 2020-12_ML_in_Finance
+We show how machine learning can help design investment strategies based on stock characteristics.
