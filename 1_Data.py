@@ -16,6 +16,11 @@ d = pd.read_csv(filename)
 LOG( "Convert the dates" )
 d['date'] = pd.to_datetime( d['date'] )
 
+LOG( "Universe" )
+if not "universe" in d.columns:
+    LOG( "  No 'universe' column..." )
+    d['universe'] = True
+
 LOG( "Convert to matrices [VERY LONG]" )
 dd = dbDataFrameToList(d, id_name = 'stock_id', date_name = 'date')
 
