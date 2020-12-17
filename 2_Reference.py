@@ -36,7 +36,7 @@ alphas, coef, _ = lasso_path( X = x, y = y, max_iter = 10_000 )
 LOG( "Load the list of matrices" )
 dd = load( "data/data_ml.pickle" )
 
-trailing_log_returns = dbLag( np.log1p( dd[ 'R1M_Usd' ] ) )
+trailing_log_returns = LAG( np.log1p( dd[ 'R1M_Usd' ] ) )
 y = trailing_log_returns.copy()
 y.fillna(0, inplace=True)
 
@@ -148,7 +148,7 @@ plt.show()
 
 LOG( "Data for the backtest" )
 dd = load( "data/data_ml.pickle" )
-trailing_log_returns = dbLag( np.log1p( dd[ 'R1M_Usd' ] ) )
+trailing_log_returns = LAG( np.log1p( dd[ 'R1M_Usd' ] ) )
 y = trailing_log_returns.copy()
 y.fillna(0, inplace=True)
 

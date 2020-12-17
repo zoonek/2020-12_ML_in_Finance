@@ -30,32 +30,32 @@ def test_save_load():
 def test_signal_backtest():
     assert False, "NO TEST YET"   # TODO
 
-def test_dbCreateBaskets():
+def test_create_baskets():
     n_stocks = 10
     n_dates = 7
     signal = np.random.normal( size=(n_stocks,n_dates) )
     signal = pd.DataFrame( signal )
-    r = dbCreateBaskets(signal, 5)
+    r = create_baskets(signal, 5)
     assert len(r) == 5
     from functools import reduce
     import operator
     assert np.all( reduce(operator.add, r).sum() / 5 == 1 )
 
-def test_dbFractiles_dim_1():
+def test_fractiles_dim_1():
     a = np.random.normal(size=10)
-    assert np.all( np.isin( dbFractiles(a), [1,2,3,4,5] ) )
+    assert np.all( np.isin( fractiles(a), [1,2,3,4,5] ) )
     from collections import Counter
-    assert np.all( np.array( list( Counter( dbFractiles(a) ).values() ) ) == 2 )
+    assert np.all( np.array( list( Counter( fractiles(a) ).values() ) ) == 2 )
     a[2] = np.nan
-    assert np.isnan( dbFractiles(a)[2] )    
+    assert np.isnan( fractiles(a)[2] )    
     a = np.random.normal(size=10)
     a = sorted(a)
-    assert dbFractiles(a) == [1,1, 2,2, 3,3, 4,4, 5,5]
+    assert fractiles(a) == [1,1, 2,2, 3,3, 4,4, 5,5]
 
-def test_dbFractiles_dim_2():
+def test_fractiles_dim_2():
     assert False, "NO TEST YET"   # TODO
 
-def test_dbComputePortfolioReturns():
+def test_compute_portfolio_returns():
     n_stocks = 26
     n_dates = 7
     ids = LETTERS[:n_stocks]
@@ -66,21 +66,21 @@ def test_dbComputePortfolioReturns():
     returns = weights.copy()
     returns[:] = .30 * np.random.normal( size=(n_stocks,n_dates) )
     returns = np.expm1(returns)
-    r = dbComputePortfolioReturns(weights, returns)
+    r = compute_portfolio_returns(weights, returns)
     r
     ## TODO: Actual test...
 
-def test_dbAnalyzeReturns():
+def test_analyze_returns():
     n_dates = 100
     dates = pd.date_range(start="2020-01-01", periods=n_dates, freq='M')
     returns = .2 * np.random.normal( size = n_dates )
     returns = np.expm1(returns)
     returns = pd.Series(returns, index=dates)
-    r = dbAnalyzeReturns(returns, as_df=True)
+    r = analyze_returns(returns, as_df=True)
 
-def test_dbLag_dim_1():
+def test_LAG_dim_1():
     x = np.array([1,2,3,4,5])
-    y = np.array( [ dbLag(x,lag) for lag in range(-6,+7) ] )
+    y = np.array( [ LAG(x,lag) for lag in range(-6,+7) ] )
     print(y)  # More readable than the tests below
     assert np.all( y[2:7,0] == np.array([5,4,3,2,1]) )
     assert np.all( y[3:8,1] == np.array([5,4,3,2,1]) )
@@ -100,23 +100,23 @@ def test_dbLag_dim_1():
     assert np.all( np.isnan( y[8,:-3] ) )
     assert np.all( np.isnan( y[7,:-4] ) )
 
-def test_dbLag_dim_2():
+def test_LAG_dim_2():
     assert False, "NO TEST YET"   # TODO
 
-def test_dbCoalesce():
+def test_coalesce():
     ## Dimension 1
     x = np.array([ np.nan,1,2,np.nan,4,np.nan ])
-    assert np.all( dbCoalesce(x,0) == np.array([0,1,2,0,4,0]) )
-    assert np.all( dbCoalesce( x, x[::-1] )[1:5] == np.array([1,2,2,4]) )
-    assert np.all( dbCoalesce( x, x[::-1], np.array([5,4,3,2,1,0]) ) == np.array( [5,1,2,2,4,0] ) )
+    assert np.all( coalesce(x,0) == np.array([0,1,2,0,4,0]) )
+    assert np.all( coalesce( x, x[::-1] )[1:5] == np.array([1,2,2,4]) )
+    assert np.all( coalesce( x, x[::-1], np.array([5,4,3,2,1,0]) ) == np.array( [5,1,2,2,4,0] ) )
     ## Dimension 2
     assert False, "NO TEST YET"   #     TODO: 1, 2 or 3 arguments; same size of scalars
     assert False, "NO TEST YET"   #     TODO: vectors or matrices
 
-def test_dbDataFrameToList():
+def test_data_frame_to_list():
     assert False, "NO TEST YET"   # TODO: Compare the old and the new function
 
-def test_dbDataFrameToMatrix():
+def test_data_frame_to_matrix():
     assert False, "NO TEST YET"   # TODO
 
 def test_cumsum_na():

@@ -22,7 +22,7 @@ if not "universe" in d.columns:
     d['universe'] = True
 
 LOG( "Convert to matrices [VERY LONG]" )
-dd = dbDataFrameToList(d, id_name = 'stock_id', date_name = 'date')
+dd = data_frame_to_list(d, id_name = 'stock_id', date_name = 'date')
 
 dd['universe'].fillna(0, inplace=True)
 

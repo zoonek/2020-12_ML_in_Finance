@@ -118,7 +118,7 @@ def signal_backtest( signal, log_returns, date = None ):
     dates = pd.to_datetime( signal.columns )
 
     ## Portfolio weights: list of weight matrices
-    ws = dbCreateBaskets(signal)
+    ws = create_baskets(signal)
     ws.append( ws[-1] - ws[0] )
 
     ## Turnover: Sum_i abs( w[i,t] - w[i,t] )
@@ -127,7 +127,7 @@ def signal_backtest( signal, log_returns, date = None ):
     turnover = pd.DataFrame(turnover, columns = signal.columns[1:])
 
     ## Portfolio returns 
-    rs = [ dbComputePortfolioReturns( w, np.expm1(log_returns) ) for w in ws ]  # Ratio-returns
+    rs = [ compute_portfolio_returns( w, np.expm1(log_returns) ) for w in ws ]  # Ratio-returns
     rs = [ np.log1p(r) for r in rs ]  # Log-returns
 
     ## Portfolio prices
@@ -152,7 +152,7 @@ def signal_backtest( signal, log_returns, date = None ):
         periods['in-sample'    ] = dates <= date
         periods['out-of-sample'] = dates >  date 
     for period,i in periods.items():
-        perf = [ dbAnalyzeReturns( r[i], as_df = True ) for r in rs ]
+        perf = [ analyze_returns( r[i], as_df = True ) for r in rs ]
         perf = pd.concat(perf).reset_index(drop=True)
         perf = perf.join(pd.DataFrame( turnover.iloc[ :, i[1:] ].median(axis=1), columns = ["Turnover"] ))    ## TODO: WHY DO I USE iloc?
         perf = ids.join(perf)
@@ -161,12 +161,12 @@ def signal_backtest( signal, log_returns, date = None ):
     return result
 
 
-def dbCreateBaskets(x, n=5):
+def create_baskets(x, n=5):
     """
     Input:   Investment signal, one stock per row, one date per column
     Output:  List of weight matrices for the 5 quintile portfolios
     """
-    y = dbFractiles(x,n)
+    y = fractiles(x,n)
     r = []
     for k in range(1,n+1):
         w = ( y == k ).astype( np.float64 )
@@ -176,7 +176,7 @@ def dbCreateBaskets(x, n=5):
     return r
 
 
-def dbFractiles_1(x, n=5):
+def fractiles_1(x, n=5):
     """
     Fractiles of a 1-dimensional object (list, numpy array, pandas dataframe).
     The output is a vector (or list, etc.) with elements 1,2,...,n (and np.nan): 
@@ -197,23 +197,23 @@ def dbFractiles_1(x, n=5):
     return y
 
 
-def dbFractiles(x, n=5):
+def fractiles(x, n=5):
     """
     Compute the fractiles of each column of x.
     """
     if type(x) == list or len(x.shape) == 1:
         ## 1-dimensional object
-        return dbFractiles_1(x,n)
+        return fractiles_1(x,n)
     y = x.copy()
     assert len(x.shape) == 2
     is_pandas = isinstance( x, pd.DataFrame )
     for i in range( x.shape[1] ):
-        if is_pandas: y.iloc[:,i] = dbFractiles( x.iloc[:,i], n )
-        else:         y     [:,i] = dbFractiles( x     [:,i], n )
+        if is_pandas: y.iloc[:,i] = fractiles( x.iloc[:,i], n )
+        else:         y     [:,i] = fractiles( x     [:,i], n )
     return y
 
 
-def dbComputePortfolioReturns(
+def compute_portfolio_returns(
     weights,
     trailing_ratio_returns,
 ):
@@ -224,7 +224,7 @@ def dbComputePortfolioReturns(
     Returns: vector of trailing ratio returns
     """
     assert weights.shape == trailing_ratio_returns.shape, "Not implemented: different dates, or different rebalancing frequencies"
-    trailing_weights = dbLag(weights, 1)
+    trailing_weights = LAG(weights, 1)
     r = trailing_weights * trailing_ratio_returns
     r.fillna(0, inplace=True)
     r = np.sum(r, axis=0)
@@ -232,7 +232,7 @@ def dbComputePortfolioReturns(
     return r
 
 
-def dbAnalyzeReturns( ratio_returns, as_df = False ):
+def analyze_returns( ratio_returns, as_df = False ):
     """
     Performance metrics, from a time series of returns.
     The Pandas series should be indexed by dates (for annualization),
@@ -276,7 +276,7 @@ def dbAnalyzeReturns( ratio_returns, as_df = False ):
     result["Frequency"]  = periodicity(dates)
 
     ## Returns
-    log_return = np.sum( dbCoalesce( np.log1p(r), 0 ) )
+    log_return = np.sum( coalesce( np.log1p(r), 0 ) )
     result["Cummulative Return"] = math.expm1( log_return )
     y = ( result["End Date"] - result["Start Date"] ).days / 365.25   # Number of years
     result["CAGR"] = math.expm1( log_return / y )
@@ -316,7 +316,7 @@ def dbAnalyzeReturns( ratio_returns, as_df = False ):
     return result
 
 
-def dbLag(x, lag=1):
+def LAG(x, lag=1):
     """
     Shift an id×date matrix (or Pandas DataFrame) or a vector (or Pandas Series).
     Negative lags peer into the future. 
@@ -354,7 +354,7 @@ def dbLag(x, lag=1):
     return y
 
 
-def dbCoalesce(*args):
+def coalesce(*args):
     """
     Similar to SQL's COALESCE: 
     replace missing (or infinite) values in the first argument 
@@ -373,7 +373,7 @@ def dbCoalesce(*args):
     return x
 
 
-def dbDataFrameToList(d, id_name = "id", date_name = "date"):
+def data_frame_to_list(d, id_name = "id", date_name = "date"):
     """UNTESTED"""
     assert d.columns[0] == id_name,   f"The first column should be id_name='{id_name}'"
     assert d.columns[1] == date_name, f"The second column should me date_name='{date_name}'"
@@ -397,9 +397,9 @@ def dbDataFrameToList(d, id_name = "id", date_name = "date"):
         r[key].values[i,j] = d[key].values
     return r
 
-def dbDataFrameToMatrix(d, id_name = "id", date_name = "date"):
+def data_frame_to_matrix(d, id_name = "id", date_name = "date"):
     assert len(d.columns) == 3
-    return dbDataFrameToList(d, id_name, date_name)[ d.columns[2] ]
+    return data_frame_to_list(d, id_name, date_name)[ d.columns[2] ]
 
 def cumsum_na(x):
     """
@@ -422,7 +422,7 @@ def replace_last_leading_NaN_with_1(x):
     assert isinstance( x, pd.Series )
     y = x.copy()
     i = np.isfinite(x)
-    i = np.nonzero( dbLag(i, -1).values )[0][0]
+    i = np.nonzero( LAG(i, -1).values )[0][0]
     if not np.isfinite( x[i] ): 
         y[i] = 1
     return y

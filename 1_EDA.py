@@ -93,7 +93,7 @@ LOG( "  Ratio returns, not in percent" )
 predictors = [ u for u in numeric_columns if u not in [ 'R1M_Usd', 'R3M_Usd', 'R6M_Usd', 'R12M_Usd' ] ]
 
 LOG( "Individual backtests" )
-trailing_log_returns = dbLag( np.log1p( dd[ 'R1M_Usd' ] ) )
+trailing_log_returns = LAG( np.log1p( dd[ 'R1M_Usd' ] ) )
 y = trailing_log_returns.copy()
 y.fillna(0, inplace=True)
 res = {}
