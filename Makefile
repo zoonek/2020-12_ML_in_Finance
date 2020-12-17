@@ -13,3 +13,6 @@ raw/data_ml.csv: raw/data_ml.RData
 data/data_ml.pickle: raw/data_ml.csv
 	python 1_Data.py # LONG
 
+clean:
+	rm -f 1.nbconvert.ipynb
+	rm -f data/* results/* models/* plots/* tmp/*  # keep the "raw" directory
