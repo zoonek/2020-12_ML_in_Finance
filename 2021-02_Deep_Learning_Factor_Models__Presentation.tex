@@ -1,0 +1,458 @@
+\documentclass[a4paper,12pt,compress,serif]{beamer}
+
+%%
+%% Compile with: 
+%%   Rscript -e 'library(knitr);knit("template_beamer.Rnw")'
+%%   xelatex --shell-escape --interaction=nonstopmode template_beamer.tex
+%%   xelatex --shell-escape --interaction=nonstopmode template_beamer.tex
+%%
+%% The --shell-escape argument is needed if you use the minted package, to typeset code. 
+%% For the table of contents and the references to be correct, you need to compile 2 or 3 times.
+%%
+
+\usetheme{Warsaw}
+\beamertemplatenavigationsymbolsempty   % Remove the clickable icons at the bottom right
+%\useoutertheme{infolines}               % Page numbers
+
+\defbeamertemplate*{footline}{shadow theme}
+{%
+  \leavevmode%
+  \hbox{\begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.125ex,leftskip=.3cm plus1fil,rightskip=.3cm]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor\hfill\ 
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.125ex,leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle\hfill\insertframenumber\,/\,\inserttotalframenumber%
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+%%
+%% Metadata
+%%
+\title{Deep Learning Factor Models}
+\author{Vincent Zoonekynd \href{mailto:zoonek@gmail.com}{zoonek@gmail.com}}
+
+%%
+%% Fonts
+%%
+\usepackage[cm-default,no-math]{fontspec}
+\usepackage{metalogo}                      % \XeLaTeX  (put this before loading the other fonts)
+\def\Japanese{\fontspec{MS Mincho}}        % To insert Japanese text: {\Japanese 日本語}
+%%
+%% Incomment one of the following sections:
+%%
+%% 1. Default: Computer Modern, Sans Serif
+%% (nothing to do)
+%%
+%% 2. Concrete with Euler
+%% Also needs: \documentclass[serif]{beamer}
+%%
+\usepackage[T1]{fontenc}      
+\usepackage{ccfonts,eulervm}  
+%\usepackage{concrete}
+%%
+%% 3. Arev (based on Bitstream Vera), another sans-serif fonts
+%%
+%\usepackage{arev}  
+%%
+
+\makeatletter
+% For the disclaimer, use the least readable Sans Serif font we have:
+%\newcommand{\disclaimersize}{\fontspec{Univers Deutsche Bank}\@setfontsize\miniscule{3.5}{4}}
+% Calibri is even more compact, and has the advantage of having a bold variant:
+%\newcommand{\disclaimersize}{\fontspec{Calibri}\@setfontsize\miniscule{3.5}{4}}
+\newcommand{\disclaimersize}{\fontspec{Calibri}\@setfontsize\miniscule{2.5}{2.8}}
+\makeatother
+
+%%
+%% PDF 
+%%
+%\usepackage[pdftitle={\SHORTTITLE},pdfauthor={\SHORTAUTHOR},hidelinks]{hyperref}
+\usepackage{url}
+
+%%
+%% Plots
+%%
+\usepackage[all]{xy}
+\usepackage{tikz,pgflibraryshapes,tikz-cd}
+\usetikzlibrary{calc,matrix,arrows,positioning}
+\usepackage{pgfplots}
+\usepackage{calc}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%
+%% Mathematics
+%%
+\usepackage{amsmath,amsfonts,amssymb,mathrsfs,stmaryrd}
+\usepackage{accents}
+\let\mathbb\mathbf
+\def\ZZ{\mathbb{Z}}
+\def\NN{\mathbb{N}}
+\def\RR{\mathbb{R}}
+\def\PP{\mathbb{P}}
+\def\QQ{\mathbb{Q}}
+\def\CC{\mathbb{C}}
+\def\SS{\mathbb{S}}
+\def\FF{\mathbb{F}}
+\DeclareMathOperator{\sinc}{sinc}
+\DeclareMathOperator{\cor}{Cor}
+\DeclareMathOperator{\corr}{Corr}
+\DeclareMathOperator{\sd}{Sd}
+\DeclareMathOperator{\logit}{logit}
+\DeclareMathOperator{\supp}{supp}
+\let\olddiv\div
+\let\div\relax
+\DeclareMathOperator{\div}{div}
+\let\max\relax
+\let\min\relax
+\DeclareMathOperator*{\min}{Min}
+\DeclareMathOperator*{\max}{Max}
+\DeclareMathOperator*{\argmax}{Argmax}
+\DeclareMathOperator*{\argmin}{Argmin}
+\DeclareMathOperator*{\rank}{rank}
+\DeclareMathOperator*{\mean}{Mean}
+\DeclareMathOperator*{\Span}{Span}
+\def\n#1{\left\|#1\right\|}
+\let\leq\leqslant
+\let\geq\geqslant
+\let\inter\cap
+\let\union\cup
+\let\tens\otimes
+\def\xor{\mathop{\textsc{xor}}}
+\let\nothing\varnothing
+
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern4mu{#1#2}}}
+\let\indep\independent
+%\def\indep{\perp \! \! \! \perp}
+
+\def\bra#1{\left\langle#1\right|}
+\def\ket#1{\left|#1\right\rangle}
+\def\braket#1#2{\left\langle#1\middle|#2\right\rangle}
+\def\braKet#1#2#3{\left\langle#1\middle|#2\middle|#3\right\rangle}
+
+\DeclareMathOperator{\pr}{pr}
+\let\max\relax
+\DeclareMathOperator*{\max}{Max}
+\DeclareMathOperator{\var}{Var}
+\DeclareMathOperator{\vect}{Vect}
+\DeclareMathOperator{\cov}{Cov}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\re}{Re}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\grad}{grad}
+\DeclareMathOperator{\pv}{pv}
+\def\va#1{\left| #1 \right|}
+\let\epsilon\varepsilon
+\let\subsetstr\varsubsetneq
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%
+%% Header and footers
+%%
+\usepackage[en-GB]{datetime2}
+\newcommand{\dateseparator}{-}
+\newcommand{\todayiso}{\the\year \dateseparator \twodigit\month \dateseparator \twodigit\day}
+%\usepackage[level,nodayofweek]{datetime}
+%\usepackage{etoolbox}
+%\patchcmd{\formatdate}{,}{}{}{}  % http://tex.stackexchange.com/questions/55304/date-format-in-text-and-address-block
+\usepackage{xcolor}
+%\renewcommand{\dateseparator}{-}
+%\newcommand{\todayiso}{\the\year \dateseparator \twodigit\month \dateseparator \twodigit\day}
+
+%%
+%% Tables
+%%
+\usepackage{booktabs,colortbl,xcolor,longtable}
+\definecolor{bgred}{HTML}{FBB4AE}   % From Brewer's ``Pastel1'' palette
+\definecolor{bgblue}{HTML}{B3CDE3}
+\definecolor{bggray}{HTML}{EEEEEE}
+\definecolor{myred}{HTML}{AA0000}  % Darker than pure red
+\usepackage{sansmath}  % Defines \sansmath, which I use for the tables.
+\usepackage{comment}
+\usepackage{multirow}
+
+\usepackage{paralist}
+\usepackage{xspace}
+
+\usepackage{kantlipsum}
+\usepackage{multicol}
+\def\columnseprule{.4pt}
+
+\begin{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivations}
+\begin{frame}
+  \frametitle{Factor models}
+  \begin{align*}
+    y &= \alpha + \beta \text{Market} + \text{noise} \\[1cm]
+    y &= \alpha + \sum \beta_i F_i + \text{noise}
+  \end{align*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Investment strategy}
+  \begin{itemize}
+  \item Forecast returns
+    \[ y = \alpha + \sum_i \beta_i x_i + \epsilon \]
+  \item Portfolio optimization
+    \[
+    \begin{array}{ll}
+      \text{Find} & w \\
+      \text{To maximize} & w' \hat y - \lambda w' V w \\
+      \text{Such that} & w' \mathbf 1 = 1 \\
+      & w \geq 0 
+    \end{array}
+    \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Aims}
+  Use deep learning to:
+  \begin{itemize}
+  \item Forecast returns 
+  \item Build an investment strategy
+  \end{itemize}
+\end{frame}
+
+\section{Data}
+
+\begin{frame}
+  \frametitle{Data}
+  From the book \href{http://www.mlfactor.com/}{\emph{Machine Learning for Factor Investing} (G. Coqueret and T. Guida)}
+  \begin{itemize}
+  \item 1200 stocks
+  \item Monthly data, from 1998-11 to 2019-03
+  \item 100 features: momentum, earnings yield, quality, etc.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Data}
+  \centering
+  \begin{tabular}{c|c|c|c}
+    id & date & forward returns & feature$_1$ \quad $\cdots$ \quad feature$_n$ \\
+    \hline
+    &&& \\
+    &&&
+  \end{tabular}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Data}
+  TODO: CUBE
+\end{frame}
+
+\begin{frame}
+  \frametitle{Data preparation}
+  Predictors:
+  \begin{itemize}
+  \item Uniformize
+  \end{itemize}
+
+  \bigskip
+  Target (1-month forward returns):
+  \begin{itemize}
+  \item Excess wrt market (or sector)
+  \end{itemize}
+
+  \bigskip
+  Also try:
+  \begin{itemize}
+  \item Discretize
+  \item Remove outliers
+  \item Remove average values
+  \item etc.
+  \end{itemize}
+\end{frame}
+
+\section{Models}
+
+\subsection{Lasso}
+\begin{frame}
+  \frametitle{Baseline: lasso}
+  \[
+  \begin{array}{ll}
+    \text{Find} & \beta \\
+    \text{To minimize} & \n{ y - X \beta ' }_2^2 + \lambda \n{ \beta }
+  \end{array}
+  \]
+\end{frame}
+
+\begin{frame}
+  \frametitle{Baseline: lasso}
+  TODO: PLOT + NUMBERS
+\end{frame}
+
+\begin{frame}
+  \frametitle{Baseline: lasso}
+  Cross-validation may not work
+\end{frame}
+
+\subsection{Constrained}
+\begin{frame}
+  \frametitle{Constrained regression}
+  \[
+  \begin{array}{ll}
+    \text{Find} & \beta \\
+    \text{To minimize} & \n{ y - X \beta ' }_2^2 \\
+    \text{Such that} & \beta \geq 0
+  \end{array}
+  \]
+\end{frame}
+
+\begin{frame}
+  \frametitle{Constrained regression}
+  TODO: PLOT + NUMBERS
+\end{frame}
+
+\subsection{Nonlinear}
+\begin{frame}
+  \frametitle{Non-linear model}
+  TODO
+\end{frame}
+
+\begin{frame}
+  \frametitle{Non-linear model}
+  TODO: PLOT + NUMBERS
+\end{frame}
+
+\begin{frame}
+  \frametitle{Non-linear model}
+  TODO: Show what the nonlinearities bring
+\end{frame}
+
+\subsection{End-to-end}
+\begin{frame}
+  \frametitle{End-to-end model}
+  TODO
+\end{frame}
+
+\begin{frame}
+  \frametitle{End-to-end model}
+  TODO: PLOT + NUMBERS
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}
+  \frametitle{Conclusion}
+  \begin{itemize}
+  \item Data preparation
+  \item Lasso
+  \item Constrained regression
+  \item Nonlinear model
+  \item End-to-end optimization
+  \end{itemize}    
+\end{frame}
+
+\begin{frame}
+  \frametitle{Conclusion}
+  More models:
+  \begin{itemize}
+  \item Other objectives: transaction costs, drawdown, etc.
+  \item Current portfolio as input
+  \item Nonlinear with monotonicity constraints
+  \item Portfolio optimization as a layer
+  \end{itemize}
+\end{frame}
+
+\end{document}
+
+\section{First section}
+\subsection{First subsection}
+\begin{frame}\frametitle{1.1.1 insert title} Insert text. \[ E = mc^2 \] \end{frame}
+\begin{frame}\frametitle{1.1.2 insert title} Insert text.\end{frame}
+\subsection{Second subsection}
+\begin{frame}\frametitle{1.2.1 insert title} Insert text.\end{frame}
+\section{Second section}
+
+\begin{frame}
+  \frametitle{Plot}
+  \centering
+<<PlotNormal>>=
+library(quantmod)
+getSymbols("^GSPC", auto.assign=TRUE)
+op <- par( mar=c(2,3,1,1) )
+plot( 
+    index(GSPC), as.numeric( Ad(GSPC) ),
+    type="l", lwd=3, log="y", las=1,
+    xlab="", ylab=""
+)    
+par(op)
+@ 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Plots}
+  \centering
+<<PlotTwo>>=
+library(quantmod)
+getSymbols("^GSPC", auto.assign=TRUE)
+op <- par( mfrow=c(1,2), mar=c(2,3,4,1) )
+plot( 
+    index(GSPC), as.numeric( Ad(GSPC) ),
+    type="l", lwd=3, log="y", las=1,
+    xlab="", ylab="", main = "Price"
+)    
+plot( 
+    index(GSPC), as.numeric( Vo(GSPC) ),
+    type="h", lwd=1, las=1,
+    xlab="", ylab="", main = "Volume"
+)    
+par(op)
+@ 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Columns}
+  %\footnotesize
+  \scriptsize
+  \begin{multicols}{2}
+    \kant[4]
+  \end{multicols}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% References
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\nocite{*}                % Include the whole bibliography, even the entries we have not cited
+%\bibliographystyle{amsalpha}
+\bibliographystyle{these} % these.bst (a bibliography style similar to amsampha, with fewer numbers, and article summaries)
+\bibliography{document}   % document.bib
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Disclaimer
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}[plain]
+\disclaimersize
+\parskip .5em
+\textbf{Additional Information}
+
+...
+\end{frame}
+
+\end{document}
+

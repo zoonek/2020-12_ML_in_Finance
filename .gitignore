@@ -1,5 +1,16 @@
 1.nbconvert.ipynb
+
+*.aux
+*.log
+*.nav
+*.out
+*.pdf
+*.snm
+*~
+*.toc
+
 .ipynb_checkpoints/
 __pycache__/
 data/
 raw/
+plots/
