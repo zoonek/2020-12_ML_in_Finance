@@ -9,6 +9,7 @@
 *~
 *.toc
 *.vrb
+_minted*/
 
 .ipynb_checkpoints/
 __pycache__/
