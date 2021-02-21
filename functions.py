@@ -446,6 +446,8 @@ def periodicity(dates):
     i = np.argmin( [ abs( math.log(p) - math.log(v) ) for v in periods.values() ] )
     return list( periods.keys() )[i]
 
+############################################################
+
 def corrplot(C, ax=None, vmin=-1, vmax=+1, cmap='RdBu', title=None, figsize=(12,12), order=False):
     """
     Plot a correlation matrix
@@ -468,3 +470,40 @@ def corrplot(C, ax=None, vmin=-1, vmax=+1, cmap='RdBu', title=None, figsize=(12,
     if ax_was_None:
         fig.tight_layout()
         plt.show()
+
+def plot_lasso(coefs, n=20, ax=None):
+    assert isinstance( coefs, pd.DataFrame ), f"Expecting a DataFrame of coefficients, with one row per predictor, got a {type(coefs)}"
+
+    ## Reorder the coefficients
+    def f(u):
+        v = np.argwhere(u != 0)
+        v = v.flatten()
+        if len(v) == 0:
+            return len(u)
+        return v[0]
+    i = np.apply_along_axis( f, 1, coefs )
+    i = np.argsort(i)
+    coefs = coefs.iloc[i,:]
+
+    import copy
+    cmap = copy.copy(matplotlib.cm.get_cmap("RdBu"))    
+    cmap.set_bad('white')    # Plot the zeros as "white", not "grey" (after replacing them with nan)
+
+    ax_was_None = ax is None
+    if ax_was_None:
+        fig, ax = plt.subplots(figsize=(10,5))
+    tmp = coefs.iloc[:n,:].copy()
+    m = np.max(np.abs(tmp.values))
+    tmp[ tmp == 0 ] = np.nan
+    ax.imshow(tmp, vmin=-m, vmax=m, cmap=cmap, aspect='auto', interpolation='none')
+    ax.set_yticks(range(tmp.shape[0]))
+    ax.set_yticklabels( tmp.index )
+    ax.axes.yaxis.set_ticks_position("right")
+    ax.spines['left'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.axes.xaxis.set_visible(False)
+    if ax_was_None:
+        fig.tight_layout()
+        plt.show()  
