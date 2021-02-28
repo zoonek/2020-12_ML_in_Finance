@@ -1,4 +1,4 @@
-1.nbconvert.ipynb
+*.nbconvert.ipynb
 
 *.aux
 *.log
@@ -11,8 +11,10 @@
 *.vrb
 _minted*/
 
+*OLD
 .ipynb_checkpoints/
 __pycache__/
 data/
 raw/
 plots/
+results/
