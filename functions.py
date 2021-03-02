@@ -1,5 +1,5 @@
 from numba import jit
-import sys, time, os, re, math, datetime, pickle, tqdm
+import sys, time, os, re, math, datetime, pickle, tqdm, numbers
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -445,6 +445,103 @@ def periodicity(dates):
     # Closest period, on a logarithmic scale
     i = np.argmin( [ abs( math.log(p) - math.log(v) ) for v in periods.values() ] )
     return list( periods.keys() )[i]
+
+############################################################
+
+def latex(d, align = None, format={}, file=None):
+    """
+    Convert a Pandas DataFrame into LaTeX.
+    Specify the column alignment as align="llrrr".
+    The column formatting dictionary is indexed by column names and contains functions 
+    to format each value, e.g., latex_signif, latex_decimal or latex_scientific.
+    """
+    r = []
+    if align is None: 
+        align = d.shape[1] * 'l'    
+    r.append( r"\begin{tabular}{" + align + "}\n" )
+    for j in range(d.shape[1]):
+        if j > 0:
+            r.append( " & " )
+        r.append( texify( d.columns[j] ) )   # TODO: We may not always want to texify the headers
+    r.append( r' \\' + "\n" )
+    r.append( r'\hline' + "\n" )
+    for i in range(d.shape[0]):
+        for j in range(d.shape[1]): 
+            if j > 0:
+                r.append( " & " )
+            value = d.iloc[i,j]
+            if d.columns[j] in format:
+                value = format[ d.columns[j] ]( value )
+                value = str(value)
+            elif isinstance(value, numbers.Number):
+                value = f"${value}$"
+            else: 
+                value = str(value)
+                value = texify(value)
+            r.append( value )
+        r.append( r' \\' + "\n" )
+    r.append( r"\end{tabular}" )
+    r = ''.join(r)    
+    if file is None:
+        return r
+    with open(file, "w") as f:
+        print(r, file=f)
+
+def latex_scientific(u, signif=3):
+    """
+    Format a number in LaTeX, in scientific notation, 
+    with the prescibed number of significant digits
+    (this includes the digit before the decimal point).
+    """
+    if u == 0:
+        return "$0$"
+    if not np.isfinite(u):
+        return r"\textsc{na}"
+    if signif == 0: 
+        e = round( math.log10( np.abs(u) ) )
+        sign = "" if u > 0 else "-"
+        return "$" + sign + "10^{" + str(e) + "}$"
+    e = math.floor(math.log10(u))
+    m = round( u / 10 ** e, signif )
+    m = f"{ u / 10 ** e :.{signif-1}f}"
+    return "$" + m + r"\cdot10^{" + str(e) + "}$"
+
+def latex_signif(u, signif=3, scipen=0, round_integers=False):
+    """
+    Format a number in LaTeX, with a given number of significant digits. 
+    Add zeroes at the end if needed.
+    By default, integers are not rounded: 
+    if you ask for 2 significant digits for 1234, it will remain 1234, and not 1200.
+    If the scientific notation is shorter, it will be used: 
+    the "scipen" argument specifies how much shorter if should be (in characters).
+    """
+    e = math.floor(math.log10(u))
+    digits = signif - e - 1
+    if round_integers and digits < 0:
+        plain = f"{ round(u, digits) :.0f}"
+    else: 
+        digits = max(digits,0)
+        plain = f"{u:.{digits}f}"
+    scientific = latex_scientific(u,signif)
+    a = len(plain)
+    b = len( scientific.replace("$","").replace("{","").replace("}","").replace("\\cdot","").replace("^","") )
+    if a > b + scipen:
+        return scientific
+    else:
+        return plain
+
+def latex_decimal(u, decimals=2):
+    """
+    Format a number with a prescribed number of decimals (zeroes if necessary).
+    """
+    return f"{u:.{decimals}f}"
+    
+def texify(s):
+    s = s.replace( '\\', r'\textbackslash' )
+    for character in [ '{', '}', '_', '^', '$', '%', '#', '&' ]:
+        s = s.replace( character, '\\' + character )
+    s = s.replace( r'\textbackslash', r'\textbackslash{}' )
+    return s
 
 ############################################################
 
