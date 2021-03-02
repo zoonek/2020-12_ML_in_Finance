@@ -11,6 +11,8 @@ notebooks: data 1_Single_signals.ipynb 2_Linear_Model.ipynb 3_Shallow_Linear.ipy
 	jupyter nbconvert --to notebook --execute 6_Lattice_2.ipynb
 	jupyter nbconvert --to notebook --execute 6_Penalty.ipynb
 	jupyter nbconvert --to notebook --execute 7_Portfolio_Optimization.ipynb
+	jupyter nbconvert --to notebook --execute 99_Results.ipynb
+
 
 old_notebook: 1.ipynb data
 	jupyter nbconvert --to notebook --execute 1.ipynb # LONG: 10 hours?
