@@ -1,6 +1,18 @@
 from functions import *
 import numpy as np
 import pandas as pd
+import torch, random
+
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+
+set_seed(42)
 
 def get_data_3(all=False, flip_signs=False, date='2016-01-01', signs=None, verbose=True):
     """
