@@ -1,0 +1,227 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsthm}
+\usepackage{paralist}
+\usepackage{graphicx}
+
+\parindent 0pt
+\parskip .5em
+
+\begin{document}
+\begin{center}
+\vspace*{.25in}
+{\bf\LARGE  { Equity Machine Factor Models }}\\ % change it accordingly, title must be in ALL CAPS!
+\vspace*{.75in}
+{\bf by} \\*[18pt]
+\vspace*{.2in}
+{\bf Dr Miquel Noguer i Alonso} \\
+{\bf Vincent Zoonekynd} \\
+ % change it accordingly!
+\vspace*{1in}
+
+{\bf New York University} \\
+{\bf Courant Institute of Mathematical Sciences }\\
+{\bf December, 2021} \\     % change it accordingly! Put month of submission, not of thesis defense (if different)
+\vspace*{.5in}
+\begin{small}
+{\bf \copyright{ }2020 by New York University} \\ % change the year if needed!
+{\bf All rights reserved}
+\end{small}
+\end{center}
+\newpage 
+\newtheorem{definition}{Definition}[section]
+\clearpage
+
+\section{Introduction}
+
+The traditional approach to quantitative portfolio management is a 2-step process:
+\begin{compactitem}[--]
+\item First, somehow forecast the future returns of the assets under consideration, 
+  often, with a linear regression;
+\item Then, use those forecasts to build a portfolio, through portfolio optimization.
+\end{compactitem}
+
+Those two steps can be at odds with one another: the first step often minimizes a sum of squared residuals,
+which has no financial interpretation -- the model will make compromises to have good forecasts on average,
+including for assets that will not be used in the second step.
+
+Machine learning and deep learning have started to take over some of those tasks, in particular the forecasting step.
+
+Our contribution is twofold: 
+\begin{compactitem}[--]
+\item First, we examine a few models to forecast future returns,
+  which can serve as baselines for more complex models: 
+  \begin{compactitem}[\ensuremath{\cdot}]
+  \item Linear regression;
+  \item Linear regression with an $L^1$ penalty (lasso);
+  \item Constrained linear regression;
+  \item Neural network;
+  \end{compactitem}
+\item Second, we present a unified framework for portfolio construction, leveraging machine learning for the whole pipeline,
+from the data to the portfolio weights, which scales to a large number of assets and predictors.
+  \begin{compactitem}[\ensuremath{\cdot}]
+  \item We start with dozens of ``investment factors'': quantities with proven (or believed) predictive power on future returns;
+  \item We combine them with a neural network, to capture nonlinearities and interactions, to produce a ``score'', rather than a return forecast; 
+  \item We turn those scores into portfolio weights, by normalizing them;
+  \item We optimize the information ratio of the strategy -- 
+  but the same approach would work with any differentiable objective (drawdown, etc.)
+  \end{compactitem}
+\end{compactitem}
+
+In a follow-up paper, we will combine those approaches by
+\begin{compactitem}[--]
+\item Imposing monotonicity constraints on that neural network
+  \cite{liu_certified_2020,you_deep_2017}, 
+  to reflect the expected direction in which the investment factors work -- 
+  that prior knowledge is important;
+\item Replacing the normalization of the portfolio weights 
+  with an actual portfolio optimization -- 
+  the optimization will then be a layer in the deep learning pipeline
+  \cite{agrawal_differentiable_2019}.
+\end{compactitem}
+
+\clearpage
+\section{Prior work}
+
+There have been some prior attempts to go directly from data to portfolio weights,
+with ``formulaic portfolios'', using weights proportional to some measure of value
+\cite{arnott_fundamental_2005},
+some power of capitalization
+\cite{fernholz_stochastic_2002,vervuurt_topics_2015,fernholz_stock_2005,fernholz_diversity-weighted_1998},
+or a learned combination of both \cite{samo_stochastic_2016}.
+Those attempts are limited to a small number of assets and features \cite{zhang_deep_2020}.
+
+This work is a follow-up to \cite{zoonekynd_end--end_2017}, 
+with a different dataset and nonlinear models. 
+
+\textbf{TODO}
+
+\clearpage
+\section{Data and methods}
+
+We use monthly stock-level data
+from \cite{coqueret_machine_2020} (20 years, 1200 stocks, 100 features):
+\begin{compactitem}[--]
+\item One-month forward returns;
+\item Investment signals, e.g., earnings yield, momentum, etc.;
+  for each investment signal, we know in which direction it is supposed to be used:
+  for instance, ``earnings yield'' has a positive impact on future performance, while ``volatility'' has a negative impact;
+\end{compactitem}
+
+We split the data into three periods: 
+\begin{compactitem}[--]
+\item Training data: until 2016;
+\item Validation data: 2017--2018;
+\item Test data: 2019--present.
+\end{compactitem}
+
+The data was pre-processed as follows: 
+\begin{compactitem}[--]
+\item Transform each variable, separately for each date, to make it uniform on $[-1,1]$;
+\item Replace the missing values by 0.
+\end{compactitem}
+
+We compare the following models: 
+\begin{compactitem}[--]
+\item Linear regression, to forecast future returns;
+\item Linear regression with a lasso penalty, to forecast future returns; 
+  we have not used the validation period to select a model on the regularization path, 
+  but arbitrarily picked the most complex model using at most 10 predictors;
+\item Linear regression with a constraint on the sign of the coefficients; 
+\item Non-linear model, implemented as a multi-layer perceptron (MLP), 
+  to predict future returns, minimizing the sum of squared residuals; 
+\item Linear model, outputting, not return forecasts, but (logarithms of unnormalized) 
+  portfolio weights, and optimizing, not a sum of squared residuals, 
+  but the information ratio; 
+\item Nonlinear model, outputting portfolio weights, and maximizing the information ratio.
+\end{compactitem}
+
+The last two models also use ``mini-batches'': 
+at each iteration, we do not estimate the objective function on the whole training data,
+but on a random subset of stocks and a random interval of dates. Since the objective is not additive,
+this is closer to bagging than deep learning mini-batches.
+
+For neural networks, we use the Adam optimization algorithm, with the default parameters.
+
+To compare the models, we built quintile portfolios from their outputs
+and looked at the performance (returns, volatility, information ratio, turnover, etc.) 
+of the corresponding long-short portfolios. 
+
+\clearpage
+\section{Results}
+
+Figures \ref{fig:perf} and \ref{fig:wealth-curves} show the performance of the strategies tested:
+\begin{compactitem}[--]
+\item The (unconstrained, unpenalized) linear model performs best
+  (this is surprising),
+  but its turnover is very high;
+\item The constrained linear model does not perform well 
+  (this is surprising as well);
+\item The performance of the lasso is decent, 
+  and its turnover lower;
+\item The nonlinear model to forecast returns presents convergence problems: 
+  quite often, the optimization remains stuck around a poor-quality solution;
+\item The nonlinear model to optimize the information ratio has 
+  a good performance and the lowest turnover. 
+\end{compactitem}
+
+Figure \ref{fig:lasso-coef} shows the variables used by the lasso.
+
+Figure \ref{fig:non-linear} shows the relation between some of the predictors and
+the output of the nonlinear model: 
+the relations are always simple, monotonic or V- (or $\Lambda$-)shaped,
+with an occasional glitch around 0 corresponding to missing values. 
+
+\begin{figure}[htbp]
+\centering
+\input{results/performance_all.tex}
+\caption{Performance of the strategies tested}
+\label{fig:perf}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.5\textwidth]{plots/lasso_wealth_20.pdf}%
+\includegraphics[width=.5\textwidth]{plots/constrained_regression_wealth.pdf}
+\includegraphics[width=.5\textwidth]{plots/model2_nonlinear_3d_wealth.pdf}%
+\includegraphics[width=.5\textwidth]{plots/model3b_linear_IR_minibatches_wealth.pdf}
+\includegraphics[width=.5\textwidth]{plots/model6_nonlinear_IR_wealth.pdf}%
+\caption{Wealth curves of the quintile portfolios}
+\label{fig:wealth-curves}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{plots/lasso_coefs.pdf}%
+\caption{Predictors used in the lasso model}
+\label{fig:lasso-coef}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_copulas_Mkt_Cap_12M_Usd.pdf}%
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_copulas_Div_Yld.pdf}%
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_copulas_Pb.pdf}
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_hexbin_Mkt_Cap_12M_Usd.pdf}%
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_hexbin_Div_Yld.pdf}%
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_hexbin_Pb.pdf}
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_median_per_quantile_Mkt_Cap_12M_Usd.pdf}%
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_median_per_quantile_Div_Yld.pdf}%
+\includegraphics[width=.33\textwidth]{plots/model6_nonlinear_median_per_quantile_Pb.pdf}
+\caption{Different ways of examining the relation between each predictor and the output
+of the nonlinear model maximizing the information ratio: copula density, hexagonal bins, 
+and median-per-quantile}
+\label{fig:non-linear}
+\end{figure}
+
+\clearpage
+\section{Conclusion}
+
+\textbf{TODO}
+
+
+\clearpage
+\nocite{*}
+\bibliographystyle{amsplain}
+\bibliography{references}
+\end{document}

@@ -13,6 +13,13 @@ notebooks: data 1_Single_signals.ipynb 2_Linear_Model.ipynb 3_Shallow_Linear.ipy
 	jupyter nbconvert --to notebook --execute 7_Portfolio_Optimization.ipynb
 	jupyter nbconvert --to notebook --execute 99_Results.ipynb
 
+directories:
+	mkdir -p raw data plots results TO_COPY 
+
+files:
+	false   # The following is not properly escaped: run it manually in a shell
+	tar cvf - $( ( grep includegraphics *tex; grep 'input{' *tex ) | perl -p -e 's/.*{(.*)}.*/$1/') | ( cd TO_COPY && tar xvf - )
+
 
 old_notebook: 1.ipynb data
 	jupyter nbconvert --to notebook --execute 1.ipynb # LONG: 10 hours?
