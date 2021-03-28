@@ -21,13 +21,11 @@
 
 {\bf New York University} \\
 {\bf Courant Institute of Mathematical Sciences }\\
-{\bf December, 2021} \\     % change it accordingly! Put month of submission, not of thesis defense (if different)
+{\bf April, 2021} \\     % change it accordingly! Put month of submission, not of thesis defense (if different)
 \vspace*{.5in}
-\begin{small}
-{\bf \copyright{ }2020 by New York University} \\ % change the year if needed!
-{\bf All rights reserved}
-\end{small}
+
 \end{center}
+
 \newpage 
 \newtheorem{definition}{Definition}[section]
 \clearpage
@@ -36,7 +34,7 @@
 
 The traditional approach to quantitative portfolio management is a 2-step process:
 \begin{compactitem}[--]
-\item First, somehow forecast the future returns of the assets under consideration, 
+\item First, forecast the future returns of the assets under consideration, 
   often, with a linear regression;
 \item Then, use those forecasts to build a portfolio, through portfolio optimization.
 \end{compactitem}
@@ -81,7 +79,7 @@ In a follow-up paper, we will combine those approaches by
 \end{compactitem}
 
 \clearpage
-\section{Prior work}
+\section{Literature Review}
 
 There have been some prior attempts to go directly from data to portfolio weights,
 with ``formulaic portfolios'', using weights proportional to some measure of value
@@ -174,19 +172,37 @@ with an occasional glitch around 0 corresponding to missing values.
 
 \begin{figure}[htbp]
 \centering
+\makebox[\textwidth][c]{%
 \input{results/performance_all.tex}
-\caption{Performance of the strategies tested}
+}
+\caption{Performance of the long-short strategies tested}
 \label{fig:perf}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=.5\textwidth]{plots/lasso_wealth_20.pdf}%
-\includegraphics[width=.5\textwidth]{plots/constrained_regression_wealth.pdf}
-%\includegraphics[width=.5\textwidth]{plots/model2_nonlinear_3d_wealth.pdf}%
+\makebox[\textwidth][c]{%
+\input{results/performance_all_long-only.tex}
+}
+\caption{Performance of the long-only strategies tested, for comparison with \cite{coqueret_machine_2020} (``xgboost'')}
+\label{fig:perf}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\makebox[\textwidth][c]{%
+\includegraphics[width=.65\textwidth]{plots/unconstrained_regression_wealth.pdf}%
+\includegraphics[width=.65\textwidth]{plots/lasso_wealth_26.pdf}
+}
+\makebox[\textwidth][c]{%
+\includegraphics[width=.65\textwidth]{plots/constrained_regression_wealth.pdf}%
+%\includegraphics[width=.65\textwidth]{plots/model2_nonlinear_3d_wealth.pdf}
 \includegraphics[width=.5\textwidth]{plots/model2_nonlinear_3d_mb_wealth.pdf}
-\includegraphics[width=.5\textwidth]{plots/model3b_linear_IR_minibatches_wealth.pdf}
-\includegraphics[width=.5\textwidth]{plots/model6_nonlinear_IR_wealth.pdf}%
+}
+\makebox[\textwidth][c]{%
+\includegraphics[width=.65\textwidth]{plots/model6_nonlinear_IR_wealth.pdf}%
+\includegraphics[width=.65\textwidth]{plots/model3b_linear_IR_minibatches_wealth.pdf}
+}
 \caption{Wealth curves of the quintile portfolios}
 \label{fig:wealth-curves}
 \end{figure}
