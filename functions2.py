@@ -14,14 +14,13 @@ def set_seed(seed):
 
 set_seed(42)
 
-def get_data_3(all=False, flip_signs=False, date='2016-01-01', signs=None, verbose=True):
+def get_data_3(all=False, flip_signs=False, date='2016-01-01', signs=None, verbose=True, target = 'R1M_Usd'):
     """
     Data, as tensors.
     Arguments: all: whether ti return all the data or just the training data
     Returns:   x: id×date×signal
                y: id×date, forward ratio returns
                universe: id×date, 0 or 1
-    Global variables used: d, target, predictors, DATE1
     """
 
     assert signs is not None
@@ -35,12 +34,10 @@ def get_data_3(all=False, flip_signs=False, date='2016-01-01', signs=None, verbo
     d['date'] = pd.to_datetime( d['date'] )
 
     predictors = list( signs.keys() )
-    target = 'R1M_Usd'
 
     if verbose:
         LOG( "  data_frame_to_list" )
     train = data_frame_to_list(d, id_name = 'stock_id', date_name = 'date')
-
 
     if all:
         i = np.array( [ True for u in train[ predictors[0] ].columns ] )

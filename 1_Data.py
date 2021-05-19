@@ -21,7 +21,7 @@ if not "universe" in d.columns:
     LOG( "  No 'universe' column..." )
     d['universe'] = True
 
-LOG( "Convert to matrices [VERY LONG]" )
+LOG( "Convert to matrices [1 minute]" )
 dd = data_frame_to_list(d, id_name = 'stock_id', date_name = 'date')
 
 dd['universe'].fillna(0, inplace=True)

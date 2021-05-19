@@ -7,6 +7,9 @@
 ## Source: mlfactor.github.io/material/data_ml.RData
 ##
 
+library(data.table)
+library(dplyr)
+
 LOG <- function (...) 
   cat(as.character(Sys.time()), " ", ..., "\n", sep = "")
 
@@ -17,6 +20,10 @@ LOG( "Reading ", filename )
 LOG( "  Rows: ", nrow(data_ml) )
 LOG( "  Columns: ", nrow(data_ml) )
 str(data_ml)
+
+LOG( "Compute the excess returns" )
+data_ml <- data_ml %>% group_by(date) %>% mutate( R1M_Rel = log1p(R1M_Usd) - mean(log1p(R1M_Usd)) )
+data_ml <- as.data.frame(data_ml)
 
 filename <- "raw/data_ml.csv"
 LOG( "Writing ", filename, " [3 minutes]" )

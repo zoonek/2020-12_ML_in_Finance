@@ -6,6 +6,12 @@
 DATE1 = '2016-01-01'
 DATE2 = '2018-01-01'
 
+## Should we try to forecast absolute returns, or excess returns?
+## For the backtests: always use 'R1M_Usd'
+## To build the strategies: try 'R1M_Rel' (it usually works better) and 'R1M_Usd'
+#target = 'R1M_Rel'
+target = 'R1M_Usd'
+
 ## TODO: We should review those variables one by one and check the direction
 ## in which we expect them to forecast future returns.
 ## I have cheated and looked at the sign of the information ratio (in the comments)
